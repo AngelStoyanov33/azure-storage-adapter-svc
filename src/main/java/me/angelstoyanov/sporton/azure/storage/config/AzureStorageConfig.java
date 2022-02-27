@@ -14,14 +14,14 @@ import javax.enterprise.context.ApplicationScoped;
 public interface AzureStorageConfig {
 
     @WithName("account.name")
-    String accountName();
+    String getAccountName();
 
     @WithName("account.key")
-    String accountKey();
+    String getAccountKey();
 
     @WithName("container.name.comments")
-    String commentsContainerName();
+    String getCommentsContainerName();
 
     @WithName("container.name.pitches")
-    String pitchesContainerName();
+    String getPitchesContainerName();
 }
