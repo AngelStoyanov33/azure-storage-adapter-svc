@@ -2,10 +2,12 @@ package me.angelstoyanov.sporton.azure.storage.route;
 
 import com.azure.storage.blob.BlobServiceClient;
 import com.azure.storage.blob.BlobServiceClientBuilder;
+import com.azure.storage.blob.models.BlobStorageException;
 import com.azure.storage.common.StorageSharedKeyCredential;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import me.angelstoyanov.sporton.azure.storage.bean.StorageRequestHandler;
 import me.angelstoyanov.sporton.azure.storage.config.AzureStorageConfig;
+import org.apache.camel.Exchange;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.http.base.HttpOperationFailedException;
 import org.apache.http.HttpStatus;
@@ -26,6 +28,22 @@ public class StorageRoute extends RouteBuilder {
     public void configure() throws Exception {
 
         configureClient();
+        this.getCamelContext().setManagementName("azure-storage-adapter-svc");
+
+
+        onException(BlobStorageException.class)
+                .process(exchange -> {
+                    BlobStorageException e = exchange.getProperty(Exchange.EXCEPTION_CAUGHT, BlobStorageException.class);
+                    int errorCode = e.getStatusCode();
+                        exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, errorCode);
+                        exchange.getIn().setBody(e.getServiceMessage());
+                }).handled(true);
+
+        onException(IllegalArgumentException.class)
+                .process(exchange -> {
+                    exchange.getIn().setHeader(Exchange.HTTP_RESPONSE_CODE, HttpStatus.SC_BAD_REQUEST);
+                    exchange.getIn().setBody("Invalid request. Entity type is not supported.");
+                }).handled(true);
 
         from("platform-http:/upload").routeId("[Azure Storage][Image] Upload")
                 .convertBodyTo(byte[].class)
