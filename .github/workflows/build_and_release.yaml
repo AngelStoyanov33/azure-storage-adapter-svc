@@ -1,0 +1,46 @@
+name: build-and-release
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+jobs:
+  native_build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the code
+        uses: actions/checkout@v2
+      - name: Install GraalVM
+        uses: DeLaGuardo/setup-graalvm@5.0
+        with:
+          graalvm: '22.0.0.2'
+          java: 'java11'
+          arch: 'amd64'
+      - name: Install Native-Image
+        run: gu install native-image
+      - name: Install doctl 
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+      - name: Log in to DigitalOcean Container Registry
+        run: doctl registry login --expiry-seconds 1800  
+      - name: Build native executable and push it to the remote container registry
+        run: > 
+          ./mvnw clean package -Pnative
+          -Dquarkus.container-image.build=true
+      - name: Set up kubectl
+        uses: matootie/dokube@v1.3.4
+        with:
+          personalAccessToken: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+          clusterName: ${{ secrets.DIGITALOCEAN_CLUSTER_NAME }}
+          expirationTime: "1200"
+      - name: Deploy - Apply manifest
+        run: kubectl apply -f ${{ github.workspace }}/target/kubernetes/kubernetes.yml
+      # - name: Deploy - Verify deployment
+      #   run: kubectl rollout status deployment/${{ secrets.APPLICATION_NAME }}
+      - name: Upload Kubernetes Manifest to Storage
+        uses: LanceMcCarthy/Action-AzureBlobUpload@v1.10.0
+        with:
+          connection_string: ${{ secrets.AZURE_STORAGE_CONNECTION_STRING }}
+          container_name: ${{ secrets.AZURE_STORAGE_CONTAINER_NAME }}
+          source_folder: ${{ github.workspace }}/target/kubernetes/kubernetes.yml
+          destination_folder: ${{ github.event.repository.name }}/${{ github.event.release.tag_name }}
