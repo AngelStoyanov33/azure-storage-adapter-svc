@@ -54,7 +54,7 @@ public class StorageRoute extends RouteBuilder {
                         "?blobName=blob" +
                         "&operation=uploadBlockBlob" +
                         "&serviceClient=#client")
-                .convertBodyTo(String.class);
+                .process(exchange -> exchange.getIn().setBody("Image uploaded successfully."));
 
         from("platform-http:/fetch").routeId("[Azure Storage][Image] Fetch")
                 .convertBodyTo(byte[].class)
