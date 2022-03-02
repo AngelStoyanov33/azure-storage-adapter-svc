@@ -17,7 +17,7 @@ import javax.inject.Inject;
 import javax.inject.Named;
 
 @Named("StorageRoute")
-@RegisterForReflection(targets = {HttpOperationFailedException.class, StorageRoute.class, HttpStatus.class}, serialization = true)
+@RegisterForReflection(targets = {HttpOperationFailedException.class, StorageRoute.class, HttpStatus.class, IllegalArgumentException.class}, serialization = true)
 @ApplicationScoped
 public class StorageRoute extends RouteBuilder {
 

@@ -1,10 +1,14 @@
 package me.angelstoyanov.sporton.azure.storage.bean;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
 import me.angelstoyanov.sporton.azure.storage.config.AzureStorageConfig;
 import me.angelstoyanov.sporton.azure.storage.entity.StorageEntity;
+import me.angelstoyanov.sporton.azure.storage.route.StorageRoute;
 import org.apache.camel.Exchange;
 import org.apache.camel.component.azure.storage.blob.BlobConstants;
+import org.apache.camel.http.base.HttpOperationFailedException;
 import org.apache.commons.io.IOUtils;
+import org.apache.http.HttpStatus;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
@@ -15,6 +19,7 @@ import java.lang.annotation.Native;
 
 @ApplicationScoped
 @Named("StorageRequestHandler")
+@RegisterForReflection(targets = {IllegalArgumentException.class}, serialization = true)
 public class StorageRequestHandler {
 
     @Native private static final String ENTITY_ID_QUERY_PARAM_NAME = "entityId";
