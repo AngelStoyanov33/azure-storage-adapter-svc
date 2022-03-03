@@ -14,9 +14,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.annotation.Native;
 
-@ApplicationScoped
 @Named("StorageRequestHandler")
 @RegisterForReflection(targets = {IllegalArgumentException.class, StorageRequestHandler.class}, serialization = true)
+@ApplicationScoped
+@Deprecated(forRemoval = true)
 public class StorageRequestHandler {
 
     @Native
@@ -30,7 +31,6 @@ public class StorageRequestHandler {
 
     @Inject
     protected AzureStorageConfig configuration;
-
     public void prepareStorageRequest(Exchange exchange) {
         String entityId = exchange.getIn().getHeader(ENTITY_ID_QUERY_PARAM_NAME, String.class);
         String entityType = exchange.getIn().getHeader(ENTITY_TYPE, String.class);
